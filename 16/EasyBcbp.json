@@ -1,0 +1,57 @@
+[
+	{
+		"_services": "GetAboutInfo/GetAPVResponses/GetAPVResponseByCodeAndMessage",
+        "_comment": "Validando que los códigos y mensajes que devuelve el servicio GetAPVResponses son los esperado/Verificando respuesta para codigo y mensaje no definidos",
+        "index": 1,
+        "code": "99",
+        "message": "Prueba",
+        "codeAPVResponses": "0",
+        "messageAPVResponses": "Transacción ejecutada con éxito",
+        "codeAPVR": "4",
+        "messageAPVR": "El código y mensaje no guardan relación"
+	},
+    {
+		"_services": "GetAboutInfo/GetAPVResponses/GetAPVResponseByCodeAndMessage",
+        "_comment": "Validando respuesta adecuada en el servicio GetAPVResponseByCodeAndMessage para parámetro message vacío",
+        "index": 2,
+        "code": "0",
+        "message": "",
+        "codeAPVResponses": "0",
+        "messageAPVResponses": "Transacción ejecutada con éxito",
+        "codeAPVR": "0",
+        "messageAPVR": "Transacción ejecutada con éxito"
+	},
+    {
+		"_services": "GetAboutInfo/GetAPVResponses/GetAPVResponseByCodeAndMessage",
+        "_comment": "Validando respuesta adecuada en el servicio GetAPVResponseByCodeAndMessage para parámetro message nulo",
+        "index": 3,
+        "code": "0",
+        "message": null,
+        "codeAPVResponses": "0",
+        "messageAPVResponses": "Transacción ejecutada con éxito",
+        "codeAPVR": "0",
+        "messageAPVR": "Transacción ejecutada con éxito"
+	},
+    {
+		"_services": "GetAboutInfo/GetAPVResponses/GetAPVResponseByCodeAndMessage",
+        "_comment": "Validando respuesta adecuada para parámetro code formado por caracteres especiales",
+        "index": 4,
+        "code": "!$&",
+        "message": "Too Late",
+        "codeAPVResponses": "0",
+        "messageAPVResponses": "Transacción ejecutada con éxito",
+        "codeAPVR": "11",
+        "messageAPVR": "El valor del campo code debe ser un número entero"
+	},
+    {
+		"_services": "GetAboutInfo/GetAPVResponses/GetAPVResponseByCodeAndMessage",
+        "_comment": "Validando respuesta adecuada para parámetro code alfabético",
+        "index": 5,
+        "code": "abc",
+        "message": "Too Late",
+        "codeAPVResponses": "0",
+        "messageAPVResponses": "Transacción ejecutada con éxito",
+        "codeAPVR": "11",
+        "messageAPVR": "El valor del campo code debe ser un número entero"
+	}
+]

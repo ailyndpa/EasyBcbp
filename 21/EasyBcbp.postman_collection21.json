@@ -1,0 +1,962 @@
+{
+	"info": {
+		"_postman_id": "88a3e41a-dedf-4dd2-8b40-2be5d7242e76",
+		"name": "EasyBcbp",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26253348"
+	},
+	"item": [
+		{
+			"name": "GetAboutInfo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"/**I store the answer in JsonDta */\r",
+							"let jsonData = pm.response.json();\r",
+							"\r",
+							"/**valid if the status code is 200*/\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"/**Check the current version of Easy POC*/\r",
+							"pm.test(\"System version\", () => {\r",
+							"    pm.expect(jsonData.version).to.eql(\"6.32.6.4\")\r",
+							"});\r",
+							"\r",
+							"/**Check system name*/\r",
+							"pm.test(\"System name\", () => {\r",
+							"    pm.expect(jsonData.name).to.eql(\"EasyBcbp\")\r",
+							"});\r",
+							"/**Verifying the existence of properties in domainController*/\r",
+							"pm.test(\"Verifying the existence of properties in domainController\", function () {\r",
+							"    pm.expect(jsonData.domainController).to.have.all.keys('currentTime', 'currentTimeLocal');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{easyBcbp.url}}/api/About/GetAboutInfo",
+					"host": [
+						"{{easyBcbp.url}}"
+					],
+					"path": [
+						"api",
+						"About",
+						"GetAboutInfo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetAPVResponses",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"/**I store the answer in JsonDta*/\r",
+							"let jsonData = pm.response.json();\r",
+							"console.log(\"jsonData\", jsonData);\r",
+							"\r",
+							"if (pm.environment.get(\"Add\") === true || pm.environment.get(\"Update\") === true || pm.environment.get(\"Delete\") === true) {\r",
+							"    if (pm.environment.get(\"Add\") === true) {\r",
+							"        pm.test(\"Verify that the APV response has been added\", () => {\r",
+							"            added = jsonData.data.filter(element => element.id === pm.environment.get(\"idAdd\"));\r",
+							"            console.log(\"added\", added);\r",
+							"            pm.expect(added[0].enabledToPass).to.eq(true);\r",
+							"        })\r",
+							"        postman.setNextRequest(\"Update\");\r",
+							"    } else if (pm.environment.get(\"Update\") === true) {\r",
+							"        pm.test(\"Verify that the APV response has been updated\", () => {\r",
+							"            updated = jsonData.data.filter(element => element.id === pm.environment.get(\"idAdd\"));\r",
+							"            console.log(\"updated\", updated);\r",
+							"            pm.expect(updated[0].enabledToPass).eq(true);\r",
+							"        });\r",
+							"        postman.setNextRequest(\"Delete\");\r",
+							"    } else if (pm.environment.get(\"Delete\") === true) {\r",
+							"        pm.test(\"Verify that the APV response has been deleted\", () => {\r",
+							"            deleted = jsonData.data.filter(element => element.id === pm.environment.get(\"idAdd\"));\r",
+							"            console.log(\"deleted\", deleted);\r",
+							"            pm.expect(deleted.length).eq(0);\r",
+							"        })\r",
+							"        pm.environment.set(\"Delete\", false);\r",
+							"        postman.setNextRequest(\"Login\");\r",
+							"    }\r",
+							"} else {\r",
+							"    /**valid if the status code is 200*/\r",
+							"    pm.test(\"Status code is 200\", () => {\r",
+							"        pm.response.to.have.status(200);\r",
+							"    });\r",
+							"\r",
+							"    /**validate that the response code is the one I am waiting for in the js for the current iteration*/\r",
+							"    pm.test(\"Checking response code\", () => {\r",
+							"        pm.expect(jsonData.code.toString()).to.eq(data.codeAPVResponses.toString());\r",
+							"    });\r",
+							"\r",
+							"    /**validate that the response message is the one I am expecting in the js for the current iteration*/\r",
+							"    pm.test(\"Checking response message\", () => {\r",
+							"        pm.expect(jsonData.message.toString()).to.eq(data.messageAPVResponses.toString());\r",
+							"    });\r",
+							"    if (jsonData.code == 0) {\r",
+							"        pm.test(\"Validates that the message and code returned by APV is as expected\", () => {\r",
+							"            jsonData.data.map((element) => {\r",
+							"                switch (element.code) {\r",
+							"                    case 0:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Passed\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 1:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Too Late\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 2:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Too Early\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 3:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Duplicate Scan Please Proceed to Check-in Counter\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 4:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Invalid Flight\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 5:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Invalid Origin\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 8:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Invalid Airline Code\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 11:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Scan Adult First\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 12:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Not Self Printed Boarding Pass\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 13:\r",
+							"                        const smsCode13 = [\"Staff passenger checkin status is not confirmed\", \"Wrong Terminal\", \"Passenger is Offloaded\", \"Name and PNR matching failed\", \"Unable to find Name in PAX List\", \"Pax is Standby\", \"Passenger acceptance status: Rejected\", \"OK: Board pass not printed\", \"Booking Not found\"];\r",
+							"\r",
+							"                        smsCode13Uppercase = smsCode13.map(elem => {\r",
+							"                            return elem.toUpperCase();\r",
+							"                        });\r",
+							"\r",
+							"                        pm.expect(smsCode13Uppercase).to.includes(element.message.toUpperCase());\r",
+							"                        break;\r",
+							"                    case 14:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Passport mismatch with the booking\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 16:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Access Not Allowed\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 17:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Invalid Logon Signature\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 20:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Airline not configured for requested Terminal and Application Type\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 21:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"PassengerValidation failed unexpectedly\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 22:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Boarding pass byte is not a valid Base-64 string\".toUpperCase());\r",
+							"                        break;\r",
+							"                    case 23:\r",
+							"                        pm.expect(element.message.toUpperCase()).to.be.eql(\"Boarding pass byte is not a valid Base-64 string\".toUpperCase());\r",
+							"                        break;\r",
+							"                }\r",
+							"            })\r",
+							"        })\r",
+							"    }\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{easyBcbp.token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{easyBcbp.url}}/api/APVResponse/GetAPVResponses",
+					"host": [
+						"{{easyBcbp.url}}"
+					],
+					"path": [
+						"api",
+						"APVResponse",
+						"GetAPVResponses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetAPVResponseByCodeAndMessage",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"/**I store the answer in JsonDta*/\r",
+							"let jsonData = pm.response.json();\r",
+							"console.log(\"jsonData\", jsonData);\r",
+							"\r",
+							"/**valid if the status code is 200*/\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"/**validate that the response code is the one I am waiting for in the js for the current iteration*/\r",
+							"pm.test(\"Checking response code\", () => {\r",
+							"    pm.expect(jsonData.code.toString()).to.eq(data.codeAPVR.toString());\r",
+							"});\r",
+							"\r",
+							"/**validate that the response message is the one I am expecting in the js for the current iteration*/\r",
+							"pm.test(\"Checking response message\", () => {\r",
+							"    pm.expect(jsonData.message.toString()).to.eq(data.messageAPVR.toString());\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{easyBcbp.token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{easyBcbp.url}}/api/APVResponse/GetAPVResponseByCodeAndMessage?code={{code}}&message={{message}}",
+					"host": [
+						"{{easyBcbp.url}}"
+					],
+					"path": [
+						"api",
+						"APVResponse",
+						"GetAPVResponseByCodeAndMessage"
+					],
+					"query": [
+						{
+							"key": "code",
+							"value": "{{code}}"
+						},
+						{
+							"key": "message",
+							"value": "{{message}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetById",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"/**I store the answer in JsonDta*/\r",
+							"let jsonData = pm.response.json();\r",
+							"console.log(\"jsonData\", jsonData);\r",
+							"\r",
+							"/**valid if the status code is 200*/\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"/**validate that the response code is the one I am waiting for in the js for the current iteration*/\r",
+							"pm.test(\"Checking response code\", () => {\r",
+							"    pm.expect(jsonData.code.toString()).to.eq(data.codeGetById.toString());\r",
+							"});\r",
+							"\r",
+							"/**validate that the response message is the one I am expecting in the js for the current iteration*/\r",
+							"pm.test(\"Checking response message\", () => {\r",
+							"    pm.expect(jsonData.message.toString()).to.eq(data.messageGetById.toString());\r",
+							"});\r",
+							"\r",
+							"console.log(\"jsonData.data.length\", jsonData.data != null)\r",
+							"\r",
+							"if (jsonData.code == 0 && jsonData.data != null) {\r",
+							"\r",
+							"    pm.test(\"Verifying correspondence of code and message with id\", () => {\r",
+							"\r",
+							"        switch (data.id) {\r",
+							"            case 1:\r",
+							"                pm.expect(jsonData.data.code).to.be.eql(0);\r",
+							"                pm.expect(jsonData.data.message.toUpperCase()).to.be.eql(\"Passed\".toUpperCase());\r",
+							"                break;\r",
+							"            case 2:\r",
+							"                pm.expect(jsonData.data.code).to.be.eql(1);\r",
+							"                pm.expect(jsonData.data.message.toUpperCase()).to.be.eql(\"Too Late\".toUpperCase());\r",
+							"                break;\r",
+							"            case 3:\r",
+							"                pm.expect(jsonData.data.code).to.be.eql(2);\r",
+							"                pm.expect(jsonData.data.message.toUpperCase()).to.be.eql(\"Too Early\".toUpperCase());\r",
+							"                break;\r",
+							"            case 4:\r",
+							"                pm.expect(jsonData.data.code).to.be.eql(3);\r",
+							"                pm.expect(jsonData.data.message.toUpperCase()).to.be.eql(\"Duplicate Scan Please Proceed to Check-in Counter\".toUpperCase());\r",
+							"                break;\r",
+							"            case 5:\r",
+							"                pm.expect(jsonData.data.code).to.be.eql(4);\r",
+							"                pm.expect(jsonData.data.message.toUpperCase()).to.be.eql(\"Invalid Flight\".toUpperCase());\r",
+							"                break;\r",
+							"            case 6:\r",
+							"                pm.expect(jsonData.data.code).to.be.eql(5);\r",
+							"                pm.expect(jsonData.data.message.toUpperCase()).to.be.eql(\"Invalid Origin\".toUpperCase());\r",
+							"                break;\r",
+							"        }\r",
+							"    })\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"id\", data.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{easyBcbp.token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{easyBcbp.url}}/api/APVResponse/GetById/{{id}}",
+					"host": [
+						"{{easyBcbp.url}}"
+					],
+					"path": [
+						"api",
+						"APVResponse",
+						"GetById",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"/**I store the answer in JsonDta*/\r",
+							"let jsonData = pm.response.json();\r",
+							"console.log(\"jsonData\", jsonData);\r",
+							"\r",
+							"/**valid if the status code is 200*/\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"/**validate that the response code is the one I am waiting for in the js for the current iteration*/\r",
+							"pm.test(\"Checking response code\", () => {\r",
+							"    pm.expect(jsonData.code.toString()).to.eq(data.codeAdd.toString());\r",
+							"});\r",
+							"\r",
+							"/**validate that the response message is the one I am expecting in the js for the current iteration*/\r",
+							"pm.test(\"Checking response message\", () => {\r",
+							"    pm.expect(jsonData.message).to.eq(data.messageAdd);\r",
+							"});\r",
+							"\r",
+							"if (jsonData.code == 0) {\r",
+							"    pm.environment.set(\"idAdd\", jsonData.data.id);\r",
+							"    pm.environment.set(\"Add\", true);\r",
+							"    pm.test(\"Verify code and message\", () => {\r",
+							"        pm.expect(jsonData.data.code.toString()).to.be.eq(data.code.toString());\r",
+							"        pm.expect(jsonData.data.message).to.be.eq(data.message);\r",
+							"        pm.expect(jsonData.data.enabledToPass).to.be.eq(true);\r",
+							"    })\r",
+							"    postman.setNextRequest(\"GetAPVResponses\");\r",
+							"} else {\r",
+							"    postman.setNextRequest(\"ValidateBoarding\");\r",
+							"}\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"code\", data.code);\r",
+							"pm.environment.set(\"message\", data.message);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{easyBcbp.token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"id\": 0,\r\n  \"code\": {{code}},\r\n  \"message\": \"{{message}}\",\r\n  \"enabledToPass\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{easyBcbp.url}}/api/APVResponse/Add",
+					"host": [
+						"{{easyBcbp.url}}"
+					],
+					"path": [
+						"api",
+						"APVResponse",
+						"Add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"/**I store the answer in JsonDta*/\r",
+							"let jsonData = pm.response.json();\r",
+							"console.log(\"jsonData\", jsonData);\r",
+							"\r",
+							"/**valid if the status code is 200*/\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"/**validate that the response code is the one I am waiting for in the js for the current iteration*/\r",
+							"pm.test(\"Checking response code\", () => {\r",
+							"    pm.expect(jsonData.code.toString()).to.eq(data.codeUpdate.toString());\r",
+							"});\r",
+							"\r",
+							"/**validate that the response message is the one I am expecting in the js for the current iteration*/\r",
+							"pm.test(\"Checking response message\", () => {\r",
+							"    pm.expect(jsonData.message.toString()).to.eq(data.messageUpdate.toString());\r",
+							"});\r",
+							"if (jsonData.code == 0) {\r",
+							"    pm.environment.set(\"Add\", false);\r",
+							"    pm.environment.set(\"Update\", true);\r",
+							"    pm.test(\"Verify code and message\", () => {\r",
+							"        pm.expect(jsonData.data.code.toString()).to.be.eq(\"27\");\r",
+							"        pm.expect(jsonData.data.message).to.be.eq(\"Test Update\");\r",
+							"        pm.expect(jsonData.data.enabledToPass).to.be.eq(true);\r",
+							"    })\r",
+							"    postman.setNextRequest(\"GetAPVResponses\");\r",
+							"} else {\r",
+							"    postman.setNextRequest(null);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{easyBcbp.token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"id\": {{idAdd}},\r\n  \"code\": 27,\r\n  \"message\": \"Test Update\",\r\n  \"enabledToPass\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{easyBcbp.url}}/api/APVResponse/Update",
+					"host": [
+						"{{easyBcbp.url}}"
+					],
+					"path": [
+						"api",
+						"APVResponse",
+						"Update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"/**I store the answer in JsonDta*/\r",
+							"let jsonData = pm.response.json();\r",
+							"console.log(\"jsonData\", jsonData);\r",
+							"\r",
+							"/**valid if the status code is 200*/\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"/**validate that the response code is the one I am waiting for in the js for the current iteration*/\r",
+							"pm.test(\"Checking response code\", () => {\r",
+							"    pm.expect(jsonData.code.toString()).to.eq(data.codeDelete.toString());\r",
+							"});\r",
+							"\r",
+							"/**validate that the response message is the one I am expecting in the js for the current iteration*/\r",
+							"pm.test(\"Checking response message\", () => {\r",
+							"    pm.expect(jsonData.message.toString()).to.eq(data.messageDelete.toString());\r",
+							"});\r",
+							"\r",
+							"if (jsonData.code == 0) {\r",
+							"    pm.environment.set(\"Add\", false);\r",
+							"    pm.environment.set(\"Update\", false);\r",
+							"    pm.environment.set(\"Delete\", true);\r",
+							"    pm.test(\"Verify code and message\", () => {\r",
+							"        pm.expect(jsonData.data.id.toString()).to.be.eq(pm.environment.get(\"idAdd\").toString());\r",
+							"        pm.expect(jsonData.data.enabledToPass).to.be.eq(true);\r",
+							"    })\r",
+							"    postman.setNextRequest(\"GetAPVResponses\");\r",
+							"} else { postman.setNextRequest(null) }"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{easyBcbp.token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{easyBcbp.url}}/api/APVResponse/Delete/{{idAdd}}",
+					"host": [
+						"{{easyBcbp.url}}"
+					],
+					"path": [
+						"api",
+						"APVResponse",
+						"Delete",
+						"{{idAdd}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"/**I store the answer in JsonDta*/\r",
+							"let jsonData = pm.response.json();\r",
+							"console.log(\"jsonData\", jsonData);\r",
+							"\r",
+							"/**valid if the status code is 200*/\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"/**validate that the response code is the one I am waiting for in the js for the current iteration*/\r",
+							"pm.test(\"Checking response code\", () => {\r",
+							"    pm.expect(jsonData.code.toString()).to.eq(data.codeLogin.toString());\r",
+							"});\r",
+							"\r",
+							"/**validate that the response message is the one I am expecting in the js for the current iteration*/\r",
+							"pm.test(\"Checking response message\", () => {\r",
+							"    pm.expect(jsonData.message.toString()).to.eq(data.messageLogin.toString());\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{easyBcbp.token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{easyBcbp.url}}/api/Subscription/Login",
+					"host": [
+						"{{easyBcbp.url}}"
+					],
+					"path": [
+						"api",
+						"Subscription",
+						"Login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "KeepAlive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"/**I store the answer in JsonDta*/\r",
+							"let jsonData = pm.response.json();\r",
+							"console.log(\"jsonData\", jsonData);\r",
+							"\r",
+							"/**valid if the status code is 200*/\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"/**validate that the response code is the one I am waiting for in the js for the current iteration*/\r",
+							"pm.test(\"Checking response code\", () => {\r",
+							"    pm.expect(jsonData.code.toString()).to.eq(data.codeKeepAlive.toString());\r",
+							"});\r",
+							"\r",
+							"/**validate that the response message is the one I am expecting in the js for the current iteration*/\r",
+							"pm.test(\"Checking response message\", () => {\r",
+							"    pm.expect(jsonData.message.toString()).to.eq(data.messageKeepAlive.toString());\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{easyBcbp.token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{easyBcbp.url}}/api/Subscription/KeepAlive",
+					"host": [
+						"{{easyBcbp.url}}"
+					],
+					"path": [
+						"api",
+						"Subscription",
+						"KeepAlive"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetFirstOrDefalutSubscription",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"/**I store the answer in JsonDta*/\r",
+							"let jsonData = pm.response.json();\r",
+							"console.log(\"jsonData\", jsonData);\r",
+							"\r",
+							"/**valid if the status code is 200*/\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"/**validate that the response code is the one I am waiting for in the js for the current iteration*/\r",
+							"pm.test(\"Checking response code\", () => {\r",
+							"    pm.expect(jsonData.code.toString()).to.eq(data.codeGetFirstOrDS.toString());\r",
+							"});\r",
+							"\r",
+							"/**validate that the response message is the one I am expecting in the js for the current iteration*/\r",
+							"pm.test(\"Checking response message\", () => {\r",
+							"    pm.expect(jsonData.message.toString()).to.eq(data.messageGetFirstOrDS.toString());\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{easyBcbp.token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{easyBcbp.url}}/api/Subscription/GetFirstOrDefalutSubscription",
+					"host": [
+						"{{easyBcbp.url}}"
+					],
+					"path": [
+						"api",
+						"Subscription",
+						"GetFirstOrDefalutSubscription"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetTransactionsAPVFiltered",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{easyBcbp.token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"transactionId\": 0,\r\n  \"flightIATACode\": \"IB 6012 \",\r\n  \"flightNumber\": \"6012\",\r\n  \"flightSTDAJul\": 80,\r\n  \"apvCodeResponse\": 0,\r\n  \"apvMessageResponse\": \"Passed\",\r\n  \"differenceTimeMax\": 0,\r\n  \"dateFrom\": \"2023-03-21T18:51:08.462Z\",\r\n  \"dateTo\": \"2023-03-21T18:51:08.462Z\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{easyBcbp.url}}/api/Transaction/GetTransactionsAPVFiltered",
+					"host": [
+						"{{easyBcbp.url}}"
+					],
+					"path": [
+						"api",
+						"Transaction",
+						"GetTransactionsAPVFiltered"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ValidateBoarding",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"/**I store the answer in JsonDta*/\r",
+							"let jsonData = pm.response.json();\r",
+							"console.log(\"jsonData\", jsonData);\r",
+							"\r",
+							"/**valid if the status code is 200*/\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"/**validate that the response code is the one I am waiting for in the js for the current iteration*/\r",
+							"pm.test(\"Checking response code\", () => {\r",
+							"    pm.expect(jsonData.code.toString()).to.eq(data.codeValidateBoarding.toString());\r",
+							"});\r",
+							"\r",
+							"/**validate that the response message is the one I am expecting in the js for the current iteration*/\r",
+							"pm.test(\"Checking response message\", () => {\r",
+							"    pm.expect(jsonData.message.toString()).to.eq(data.messageValidateBoarding.toString());\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"systemName\", data.systemName);\r",
+							"\r",
+							"if (!!data.validBcbp) {\r",
+							"    console.log(\"1111111111111\")\r",
+							"    pm.environment.set(\"bcbp\", data.bcbp);\r",
+							"} else {\r",
+							"    console.log(\"index\", data.index)\r",
+							"    console.log(\"aaaaaaaaaaaaaaaaaaaaaaa\")\r",
+							"\r",
+							"    /**Gets the Julian day of the current year*/\r",
+							"    const now = Date.now();\r",
+							"    const startOfYear = new Date(new Date().getFullYear(), 0, 1);\r",
+							"    const julianDay = Math.ceil((now - startOfYear) / 86400000);\r",
+							"\r",
+							"    /**Change the stdaJul in the bcbp of the json*/\r",
+							"    splitBcbp = data.bcbp.split(' 80  ');\r",
+							"    console.log(\"splitBcbp\", splitBcbp)\r",
+							"\r",
+							"    bcbp1 = splitBcbp[0];\r",
+							"    bcbp2 = splitBcbp[1];\r",
+							"    bcbp = bcbp1 + \" \" + julianDay.toString().padEnd(3, \" \") + \" \" + bcbp2;\r",
+							"    pm.environment.set(\"bcbp\", bcbp);\r",
+							"    console.log(\"bcbp\", pm.environment.get(\"bcbp\"))\r",
+							"}\r",
+							"\r",
+							"console.log(\"bcbp\", bcbp)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{easyBcbp.token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{easyBcbp.url}}/api/ValidateBoarding/ValidateBoarding?timeOutToAPV=-1&systemName={{systemName}}&bcbp={{bcbp}}",
+					"host": [
+						"{{easyBcbp.url}}"
+					],
+					"path": [
+						"api",
+						"ValidateBoarding",
+						"ValidateBoarding"
+					],
+					"query": [
+						{
+							"key": "timeOutToAPV",
+							"value": "-1"
+						},
+						{
+							"key": "systemName",
+							"value": "{{systemName}}"
+						},
+						{
+							"key": "bcbp",
+							"value": "{{bcbp}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.environment.set(\"code\", data.code);",
+					"pm.environment.set(\"message\", data.message);"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
